@@ -102,16 +102,15 @@ def test_classifiers_features(classifiers, feature_sets, multi_label=False):
     times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
     for fset_name, fset in feature_sets.items():
         y_train, y_val, y_test, X_train, X_val, X_test = pre_process(tracks, features_all, fset, multi_label)
-        print("a fazer 1")
+        print(fset_name)
         scores.loc[fset_name, 'dim'] = X_train.shape[1]
         for clf_name, clf in classifiers.items():
-            print("a fazer 2")
+            print(clf_name)
             t = time.process_time()
             clf.fit(X_train, y_train)
             score = clf.score(X_test, y_test)
             scores.loc[fset_name, clf_name] = score
             times.loc[fset_name, clf_name] = time.process_time() - t
-    print("a fazer 3")
     return scores, times
 
 def format_scores(scores):
