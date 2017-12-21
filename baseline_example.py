@@ -20,11 +20,20 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.multiclass import OneVsRestClassifier
 
-pd.set_option('max_columns',999)
-tracks = pd.read_csv('tracks.csv', low_memory=False)
+pd.set_option('max_columns',20)
+tracks = pd.read_csv('tracks.csv', low_memory=False, skiprows=[1])
 
-features = pd.read_csv('features.csv', low_memory=False)
-print(features.mfcc)
+features = pd.read_csv('features.csv',low_memory=False, skiprows=[1,2])
+columns_dict = {}
+for column in features.columns:
+    if '.' in column and column.split('.')[0] in columns_dict.keys():
+        columns_dict[column.split('.')[0]].append(column)
+    else:
+        columns_dict[column] = [column]
+
+print(list(columns_dict.keys()))
+print("-----------------------")
+
 
 #np.testing.assert_array_equal(features.index, tracks.index)
 
@@ -52,6 +61,7 @@ print('Top genres ({}): {}'.format(len(genres), genres))
 
 
 def pre_process(tracks, features, columns, multi_label=False, verbose=False):
+    print("a fazer")
     if not multi_label:
         # Assign an integer value to each genre.
         enc = LabelEncoder()
@@ -64,11 +74,12 @@ def pre_process(tracks, features, columns, multi_label=False, verbose=False):
         # labels = tracks['track', 'genres']
 
     # Split in training, validation and testing sets.
-    y_train = enc.fit_transform(labels[train].dropna())
+    y_train = enc.fit_transform(labels[train])
+    #print(y_train)
     y_val = enc.transform(labels[val])
     y_test = enc.transform(labels[test])
-    X_train = (features.loc[train, columns]).dropna().as_matrix()
-    print(X_train)
+    X_train = (features.loc[train, columns]).as_matrix()
+    #print(X_train)
     X_val = features.loc[val, columns].as_matrix()
     X_test = features.loc[test, columns].as_matrix()
 
@@ -91,13 +102,16 @@ def test_classifiers_features(classifiers, feature_sets, multi_label=False):
     times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
     for fset_name, fset in feature_sets.items():
         y_train, y_val, y_test, X_train, X_val, X_test = pre_process(tracks, features_all, fset, multi_label)
+        print("a fazer 1")
         scores.loc[fset_name, 'dim'] = X_train.shape[1]
         for clf_name, clf in classifiers.items():
+            print("a fazer 2")
             t = time.process_time()
             clf.fit(X_train, y_train)
             score = clf.score(X_test, y_test)
             scores.loc[fset_name, clf_name] = score
             times.loc[fset_name, clf_name] = time.process_time() - t
+    print("a fazer 3")
     return scores, times
 
 def format_scores(scores):
@@ -122,12 +136,12 @@ classifiers = {
 
 
 feature_sets={
-    'mfcc/contrast': ['mfcc', 'spectral_contrast'],
-    'mfcc/contrast/chroma': ['mfcc', 'spectral_contrast', 'chroma_cens'],
-    'mfcc/contrast/centroid': ['mfcc', 'spectral_contrast', 'spectral_centroid'],
-    'mfcc/contrast/chroma/centroid': ['mfcc', 'spectral_contrast', 'chroma_cens', 'spectral_centroid'],
-    'mfcc/contrast/chroma/centroid/tonnetz': ['mfcc', 'spectral_contrast', 'chroma_cens', 'spectral_centroid', 'tonnetz'],
-    'mfcc/contrast/chroma/centroid/zcr': ['mfcc', 'spectral_contrast', 'chroma_cens', 'spectral_centroid', 'zcr']
+    'mfcc/contrast': columns_dict['mfcc']+columns_dict['spectral_contrast'],
+    'mfcc/contrast/chroma': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens'],
+    'mfcc/contrast/centroid': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['spectral_centroid'],
+    'mfcc/contrast/chroma/centroid': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens']+columns_dict['spectral_centroid'],
+    'mfcc/contrast/chroma/centroid/tonnetz': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens']+columns_dict['spectral_centroid']+columns_dict['tonnetz'],
+    'mfcc/contrast/chroma/centroid/zcr': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens']+columns_dict['spectral_centroid']+columns_dict['zcr']
 }
 
 scores, times = test_classifiers_features(classifiers, feature_sets)
