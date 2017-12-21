@@ -6,6 +6,7 @@ import pandas as pd
 import keras
 from keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
 import math
+from time import time as tm
 from sklearn.utils import shuffle
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
 from sklearn.linear_model import LogisticRegression
@@ -100,18 +101,24 @@ def test_classifiers_features(classifiers, feature_sets, multi_label=False):
     columns = list(classifiers.keys()).insert(0, 'dim')
     scores = pd.DataFrame(columns=columns, index=feature_sets.keys())
     times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
+    start = tm()
     for fset_name, fset in feature_sets.items():
+        start_comb = tm()
         y_train, y_val, y_test, X_train, X_val, X_test = pre_process(tracks, features_all, fset, multi_label)
         print("Combination: {}".format(fset_name))
         scores.loc[fset_name, 'dim'] = X_train.shape[1]
         for clf_name, clf in classifiers.items():
+            start_classifier = tm()
             print("\tClassifier: {}".format(clf_name))
             t = time.process_time()
             clf.fit(X_train, y_train)
             score = clf.score(X_test, y_test)
             scores.loc[fset_name, clf_name] = score
             times.loc[fset_name, clf_name] = time.process_time() - t
+            print("\tTime: {} s".format(tm() - start_classifier))
+        print("Time for {}: {} s".format(fset_name, tm() - start_comb))
     print("Test Classifiers Features Finish.")
+    print("Total time: {}".format(tm() - start))
     return scores, times
 
 def format_scores(scores):
