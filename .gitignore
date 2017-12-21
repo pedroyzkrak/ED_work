@@ -1,0 +1,7 @@
+
+*.xml
+*.iml
+*.csv
+*.pickle
+README.txt
+checksums
