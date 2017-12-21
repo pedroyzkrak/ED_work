@@ -116,13 +116,14 @@ def test_classifiers_features(classifiers, feature_sets, multi_label=False):
             scores.loc[fset_name, clf_name] = score
             times.loc[fset_name, clf_name] = time.process_time() - t
             print("\tTime: {} s".format(tm() - start_classifier))
+
         print("Time for {}: {} s".format(fset_name, tm() - start_comb))
     print("Test Classifiers Features Finish.")
     print("Total time: {}".format(tm() - start))
     return scores, times
 
 def format_scores(scores):
-    return scores.format('{:.2%}', subset=pd.IndexSlice[:, scores.columns[1]:])
+    return scores.style.format('{:.2%}', subset=pd.IndexSlice[:, scores.columns[1]:])
 
 classifiers = {
     'LR': LogisticRegression(),
