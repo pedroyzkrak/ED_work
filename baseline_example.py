@@ -22,11 +22,10 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.multiclass import OneVsRestClassifier
 
 print("Loading the files...")
-pd.set_option('max_columns',20)
+#pd.set_option('max_columns',20)
 tracks = pd.read_csv('tracks.csv', low_memory=False, skiprows=[1])
 
 features = pd.read_csv('features.csv',low_memory=False, skiprows=[1,2])
-
 
 columns_dict = {}
 for column in features.columns:
@@ -148,10 +147,10 @@ feature_sets={
     'mfcc/contrast/chroma/centroid/tonnetz': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens']+columns_dict['spectral_centroid']+columns_dict['tonnetz'],
     'mfcc/contrast/chroma/centroid/zcr': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens']+columns_dict['spectral_centroid']+columns_dict['zcr']
 }
-
+print("testing...")
 scores, times = test_classifiers_features(classifiers, feature_sets)
 results_file = open("results.txt",'w')
-results_file.write(scores)
+results_file.write(scores.to_string())
 results_file.write("\n\n\n\n\n\n\n\n")
 results_file.write(times.style.format('{:.4f}'))
 
