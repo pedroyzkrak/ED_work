@@ -21,19 +21,19 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.multiclass import OneVsRestClassifier
 
+print("Loading the files...")
 pd.set_option('max_columns',20)
 tracks = pd.read_csv('tracks.csv', low_memory=False, skiprows=[1])
 
 features = pd.read_csv('features.csv',low_memory=False, skiprows=[1,2])
+
+
 columns_dict = {}
 for column in features.columns:
     if '.' in column and column.split('.')[0] in columns_dict.keys():
         columns_dict[column.split('.')[0]].append(column)
     else:
         columns_dict[column] = [column]
-
-print(list(columns_dict.keys()))
-print("-----------------------")
 
 
 #np.testing.assert_array_equal(features.index, tracks.index)
@@ -75,6 +75,7 @@ def pre_process(tracks, features, columns, multi_label=False, verbose=False):
         # labels = tracks['track', 'genres']
 
     # Split in training, validation and testing sets.
+    print("Spliting the dataset in training, validation and testing sets...")
     y_train = enc.fit_transform(labels[train])
     #print(y_train)
     y_val = enc.transform(labels[val])
@@ -116,14 +117,10 @@ def test_classifiers_features(classifiers, feature_sets, multi_label=False):
             scores.loc[fset_name, clf_name] = score
             times.loc[fset_name, clf_name] = time.process_time() - t
             print("\tTime: {} s".format(tm() - start_classifier))
-
         print("Time for {}: {} s".format(fset_name, tm() - start_comb))
     print("Test Classifiers Features Finish.")
     print("Total time: {}".format(tm() - start))
     return scores, times
-
-def format_scores(scores):
-    return scores.style.format('{:.2%}', subset=pd.IndexSlice[:, scores.columns[1]:])
 
 classifiers = {
     'LR': LogisticRegression(),
@@ -153,9 +150,10 @@ feature_sets={
 }
 
 scores, times = test_classifiers_features(classifiers, feature_sets)
-
-print(format_scores(scores))
-print(times.style.format('{:.4f}'))
+results_file = open("results.txt",'w')
+results_file.write(scores)
+results_file.write("\n\n\n\n\n\n\n\n")
+results_file.write(times.style.format('{:.4f}'))
 
 
 
