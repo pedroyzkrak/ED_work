@@ -152,14 +152,14 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
     return scores, times
 
 
-def hyperparams_tuning():
+def hyperparams_tuning(tracks, features_all, feature_sets):
     print("Tuning Parameters...")
     k_dict = {}
     est_dict = {}
     for i in range(50):
         for j in range(200):
             n = j + 1
-            scores = knn_and_adaboost(n, n, "validate")
+            scores = knn_and_adaboost(tracks, features_all, feature_sets, n, n, "validate")
             if n in est_dict.keys():
                 est_dict[n] += scores["AdaBoost"].mean()
             else:
@@ -177,8 +177,10 @@ def hyperparams_tuning():
 
 
 def main():
-    neighbours, estimators = hyperparams_tuning()  # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
-    scores, times = knn_and_adaboost(neighbours, estimators)
+    tracks, features_all, feature_sets = load_training_parameters()
+    # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
+    neighbours, estimators = hyperparams_tuning(tracks, features_all, feature_sets)
+    scores, times = knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators)
     with open("results_KNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
         outfile.write("Neighbours: " + str(neighbours) + "\nEstimators: " + str(estimators) + "\n")
         scores.to_string(outfile)
