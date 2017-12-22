@@ -21,10 +21,19 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.multiclass import OneVsRestClassifier
 
+
+
+np.random.seed(24)
+df = pd.DataFrame({'A': np.linspace(1, 10, 10)})
+df = pd.concat([df, pd.DataFrame(np.random.randn(10, 4), columns=list('BCDE'))],
+               axis=1)
+df.iloc[0, 2] = np.nan
+
+
+
 print("Loading the files...")
 #pd.set_option('max_columns',20)
 tracks = pd.read_csv('tracks.csv', low_memory=False, skiprows=[1])
-
 features = pd.read_csv('features.csv',low_memory=False, skiprows=[1,2])
 
 columns_dict = {}
@@ -149,10 +158,10 @@ feature_sets={
 }
 print("testing...")
 scores, times = test_classifiers_features(classifiers, feature_sets)
-results_file = open("results.txt",'w')
-results_file.write(scores.to_string())
-results_file.write("\n\n\n\n\n\n\n\n")
-results_file.write(times.style.format('{:.4f}'))
+with open("results.txt",'w') as outfile:
+    scores.to_string(outfile)
+    outfile.write("\n\n\n\n\n\n\n\n")
+    times.to_string(outfile)
 
 
 
