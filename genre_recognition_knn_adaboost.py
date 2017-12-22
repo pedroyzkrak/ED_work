@@ -144,8 +144,10 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
     k_dict = {}
     est_dict = {}
     for i in range(trials):
-        for j in range(0,100,10):
-            k = j + 1
+        for j in range(0,110,10):
+            k = j
+            if(j == 0):
+                k = 1
             est = k/10
             scores = knn_and_adaboost(tracks, features_all, feature_sets, k, est, "validate")
             if est in est_dict.keys():
