@@ -292,8 +292,8 @@ def hyperparams_tuning():
                 k_dict[n] += scores["kNN"].mean()
             else:
                 k_dict[n] = scores["kNN"].mean()
-    k_dict = k_dict.update((k, v / 1000) for k,v in k_dict.items())
-    est_dict = est_dict.update((k, v / 1000) for k, v in est_dict.items())
+    k_dict = k_dict.update((k, v / 50) for k,v in k_dict.items())
+    est_dict = est_dict.update((k, v / 50) for k, v in est_dict.items())
     best_k = max(k_dict, key=k_dict.get)
     best_est = max(est_dict, key=est_dict.get)
     return best_k,best_est
