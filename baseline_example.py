@@ -12,8 +12,8 @@ from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinari
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC, LinearSVC
-#from sklearn.gaussian_process import GaussianProcessClassifier
-#from sklearn.gaussian_process.kernels import RBF
+# from sklearn.gaussian_process import GaussianProcessClassifier
+# from sklearn.gaussian_process.kernels import RBF
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neural_network import MLPClassifier
@@ -22,10 +22,9 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.multiclass import OneVsRestClassifier
 
 
-
 def knn_and_adaboost(neighbours,estimators,op="test"):
     print("Loading the files...")
-    #pd.set_option('max_columns',20)
+    # pd.set_option('max_columns',20)
     tracks = pd.read_csv('tracks.csv', low_memory=False, skiprows=[1])
     features = pd.read_csv('features.csv',low_memory=False, skiprows=[1,2])
 
@@ -141,9 +140,10 @@ def knn_and_adaboost(neighbours,estimators,op="test"):
         'mfcc/contrast/chroma/centroid/zcr': columns_dict['mfcc']+columns_dict['spectral_contrast']+columns_dict['chroma_cens']+columns_dict['spectral_centroid']+columns_dict['zcr']
     }
     if op == 'validate':
-        scores, times = validate_classifiers_features(classifiers, feature_sets)
-    else:
-        scores, times = test_classifiers_features(classifiers, feature_sets)
+        scores = validate_classifiers_features(classifiers, feature_sets)
+        return scores
+
+    scores, times = test_classifiers_features(classifiers, feature_sets)
     return scores, times
 
 def baseline_example_all_classifiers():
