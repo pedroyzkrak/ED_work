@@ -1,25 +1,13 @@
 import time
 
-import IPython.display as ipd
 import numpy as np
 import pandas as pd
-import keras
-from keras.layers import Activation, Dense, Conv1D, Conv2D, MaxPooling1D, Flatten, Reshape
-import math
 from time import time as tm
 from sklearn.utils import shuffle
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
-from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.svm import SVC, LinearSVC
-# from sklearn.gaussian_process import GaussianProcessClassifier
-# from sklearn.gaussian_process.kernels import RBF
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.neural_network import MLPClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
-from sklearn.multiclass import OneVsRestClassifier
+
 
 
 def load_training_parameters():
@@ -79,7 +67,6 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
         y_val = enc.transform(labels[val])
         y_test = enc.transform(labels[test])
         x_train = (features.loc[train, columns]).as_matrix()
-        # print(X_train)
         x_val = features.loc[val, columns].as_matrix()
         x_test = features.loc[test, columns].as_matrix()
 
@@ -152,25 +139,26 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
     return scores, times
 
 
-def hyperparams_tuning(tracks, features_all, feature_sets):
+def hyperparams_tuning(tracks, features_all, feature_sets, trials):
     print("Tuning Parameters...")
     k_dict = {}
     est_dict = {}
-    for i in range(50):
-        for j in range(200):
-            n = j + 1
-            scores = knn_and_adaboost(tracks, features_all, feature_sets, n, n, "validate")
-            if n in est_dict.keys():
-                est_dict[n] += scores["AdaBoost"].mean()
+    for i in range(trials):
+        for j in range(0,100,10):
+            k = j + 1
+            est = k/10
+            scores = knn_and_adaboost(tracks, features_all, feature_sets, k, est, "validate")
+            if est in est_dict.keys():
+                est_dict[est] += scores["AdaBoost"].mean()
             else:
-                est_dict[n] = scores["AdaBoost"].mean()
+                est_dict[k] = scores["AdaBoost"].mean()
 
-            if n in k_dict.keys():
-                k_dict[n] += scores["kNN"].mean()
+            if k in k_dict.keys():
+                k_dict[k] += scores["kNN"].mean()
             else:
-                k_dict[n] = scores["kNN"].mean()
-    k_dict = k_dict.update((k, v / 50) for k, v in k_dict.items())
-    est_dict = est_dict.update((k, v / 50) for k, v in est_dict.items())
+                k_dict[k] = scores["kNN"].mean()
+    k_dict = k_dict.update((k, v / trials) for k, v in k_dict.items())
+    est_dict = est_dict.update((k, v / trials) for k, v in est_dict.items())
     best_k = max(k_dict, key=k_dict.get)
     best_est = max(est_dict, key=est_dict.get)
     return best_k, best_est
@@ -179,10 +167,12 @@ def hyperparams_tuning(tracks, features_all, feature_sets):
 def main():
     tracks, features_all, feature_sets = load_training_parameters()
     # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
-    neighbours, estimators = hyperparams_tuning(tracks, features_all, feature_sets)
-    scores, times = knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators)
+    trials = 25
+    fine_neighbours, fine_estimators = hyperparams_tuning(tracks, features_all, feature_sets, trials)
+    print(fine_neighbours,fine_estimators)
+    scores, times = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
     with open("results_KNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
-        outfile.write("Neighbours: " + str(neighbours) + "\nEstimators: " + str(estimators) + "\n")
+        outfile.write("Neighbours: " + str(fine_neighbours) + "\nEstimators: " + str(fine_estimators) + "\n")
         scores.to_string(outfile)
         outfile.write("\n\n\n\n\n\n\n\n")
         times.to_string(outfile)
@@ -190,15 +180,5 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-    # baseline example with all classifiers
-    """
-    scores, times = baseline_example_all_classifiers()
-    with open("results.txt", 'w') as outfile:
-        scores.to_string(outfile)
-        outfile.write("\n\n\n\n\n\n\n\n")
-        times.to_string(outfile)
-
-    """
 
 
