@@ -151,14 +151,14 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
             if est in est_dict.keys():
                 est_dict[est] += scores["AdaBoost"].mean()
             else:
-                est_dict[k] = scores["AdaBoost"].mean()
+                est_dict[est] = scores["AdaBoost"].mean()
 
             if k in k_dict.keys():
                 k_dict[k] += scores["kNN"].mean()
             else:
                 k_dict[k] = scores["kNN"].mean()
-    k_dict = k_dict.update((k, v / trials) for k, v in k_dict.items())
-    est_dict = est_dict.update((k, v / trials) for k, v in est_dict.items())
+    k_dict = k_dict.update((key, value / trials) for key, value in k_dict.items())
+    est_dict = est_dict.update((key, value / trials) for key, value in est_dict.items())
     best_k = max(k_dict, key=k_dict.get)
     best_est = max(est_dict, key=est_dict.get)
     return best_k, best_est
