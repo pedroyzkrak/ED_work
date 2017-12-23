@@ -2,11 +2,11 @@ import time
 
 import numpy as np
 import pandas as pd
-from time import time as tm
+from time import time as tm, gmtime, strftime
 from sklearn.utils import shuffle
-from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, LabelBinarizer, StandardScaler
+from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from sklearn.ensemble import AdaBoostClassifier
 
 
 
@@ -27,6 +27,16 @@ def load_training_parameters():
 
     tracks = tracks.loc[subset]
     features_all = features.loc[subset]
+
+    train = tracks.index[tracks['set'] == 'training']
+    val = tracks.index[tracks['set'] == 'validation']
+    test = tracks.index[tracks['set'] == 'test']
+
+    print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
+
+    genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
+
+    print('Top genres ({}): {}'.format(len(genres), genres))
 
     feature_sets = {
         'mfcc/contrast': columns_dict['mfcc'] + columns_dict['spectral_contrast'],
@@ -120,11 +130,11 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
     val = tracks.index[tracks['set'] == 'validation']
     test = tracks.index[tracks['set'] == 'test']
 
-    print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
+    #print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
 
     genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
 
-    print('Top genres ({}): {}'.format(len(genres), genres))
+    #print('Top genres ({}): {}'.format(len(genres), genres))
 
     classifiers = {
         'kNN': KNeighborsClassifier(n_neighbors=neighbours),
@@ -144,7 +154,11 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
     k_dict = {}
     est_dict = {}
     for i in range(trials):
+        print("Trial {} start time: {}".format(i + 1, strftime("%Y-%m-%d %H:%M:%S", gmtime())))
+        it = 0
         for j in range(0,110,10):
+            it += 1
+            print("\r{}/11".format(it))
             k = j
             est = k/10
             if(j == 0):
@@ -172,7 +186,7 @@ def main():
     # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
     trials = 25
     fine_neighbours, fine_estimators = hyperparams_tuning(tracks, features_all, feature_sets, trials)
-    print(fine_neighbours,fine_estimators)
+    print("Fine Nieghbours:", fine_neighbours, "Fine Estimators:0", fine_estimators)
     scores, times = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
     with open("results_KNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
         outfile.write("Neighbours: " + str(fine_neighbours) + "\nEstimators: " + str(fine_estimators) + "\n")
@@ -183,5 +197,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
