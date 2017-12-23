@@ -104,7 +104,7 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
 
     def test_classifiers_features(classifiers, feature_sets, multi_label=False):
         matrixes = {} #confusion matrixes
-        genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
+        #genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
         columns = list(classifiers.keys()).insert(0, 'dim')
         scores = pd.DataFrame(columns=columns, index=feature_sets.keys())
         times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
@@ -123,7 +123,7 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
                 scores.loc[fset_name, clf_name] = score
                 times.loc[fset_name, clf_name] = time.process_time() - t
                 print("\tTime: {} s".format(tm() - start_classifier))
-                conf_matrix = confusion_matrix(y_test,y_train,labels=genres) #EXPERIMENTAR COM LABELS
+                conf_matrix = confusion_matrix(y_test,y_train)
                 matrixes[clf_name] = conf_matrix
             print("Time for {}: {} s".format(fset_name, tm() - start_comb))
         print("Test Classifiers Features Finish.")
