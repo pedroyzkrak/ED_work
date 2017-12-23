@@ -7,6 +7,7 @@ from sklearn.utils import shuffle
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.metrics import confusion_matrix
 
 
 
@@ -34,9 +35,8 @@ def load_training_parameters():
 
     print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
 
-    genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
 
-    print('Top genres ({}): {}'.format(len(genres), genres))
+    print('Top genres ({}): {}'.format(len(list(LabelEncoder().fit(tracks['track.7']).classes_)), list(LabelEncoder().fit(tracks['track.7']).classes_)))
 
     feature_sets = {
         'mfcc/contrast': columns_dict['mfcc'] + columns_dict['spectral_contrast'],
@@ -103,6 +103,8 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
         return scores
 
     def test_classifiers_features(classifiers, feature_sets, multi_label=False):
+        matrixes = {} #confusion matrixes
+        genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
         columns = list(classifiers.keys()).insert(0, 'dim')
         scores = pd.DataFrame(columns=columns, index=feature_sets.keys())
         times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
@@ -121,10 +123,12 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
                 scores.loc[fset_name, clf_name] = score
                 times.loc[fset_name, clf_name] = time.process_time() - t
                 print("\tTime: {} s".format(tm() - start_classifier))
+                conf_matrix = confusion_matrix(y_test,y_train,labels=genres) #EXPERIMENTAR COM LABELS
+                matrixes[clf_name] = conf_matrix
             print("Time for {}: {} s".format(fset_name, tm() - start_comb))
         print("Test Classifiers Features Finish.")
         print("Total time: {}".format(tm() - start))
-        return scores, times
+        return scores, times, matrixes
 
     train = tracks.index[tracks['set'] == 'training']
     val = tracks.index[tracks['set'] == 'validation']
@@ -189,12 +193,15 @@ def main():
     trials = 25
     fine_neighbours, fine_estimators = hyperparams_tuning(tracks, features_all, feature_sets, trials)
     print("Fine Nieghbours:", fine_neighbours, "Fine Estimators:", fine_estimators)
-    scores, times = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
-    with open("results_KNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
+    scores, times, confusion_matrixes = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
+    with open("results_kNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
         outfile.write("Neighbours: " + str(fine_neighbours) + "\nEstimators: " + str(fine_estimators) + "\n")
         scores.to_string(outfile)
         outfile.write("\n\n\n\n\n\n\n\n")
         times.to_string(outfile)
+        outfile.write("\n\n\n\n\n\n\n\n")
+        outfile.write("Confusion Matrixes\nkNN:\n"+str(confusion_matrixes["kNN"])+"\nAdaBoost:\n"+str(confusion_matrixes["AdaBoost"]))
+        outfile.write()
 
 
 if __name__ == '__main__':
