@@ -132,7 +132,7 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
 
     #print('{} training examples, {} validation examples, {} testing examples'.format(*map(len, [train, val, test])))
 
-    genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
+    #genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
 
     #print('Top genres ({}): {}'.format(len(genres), genres))
 
@@ -154,7 +154,7 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
     k_dict = {}
     est_dict = {}
     for i in range(trials):
-        print("Trial {} start time: {}".format(i + 1, strftime("%Y-%m-%d %H:%M:%S", gmtime())))
+        print("Trial {} start time: {}".format(i + 1, strftime("%H:%M:%S %d-%m-%Y", gmtime())))
         it = 0
         for j in range(0, 110, 10):
             it += 1
@@ -174,10 +174,12 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
                 k_dict[k] += scores["kNN"].mean()
             else:
                 k_dict[k] = scores["kNN"].mean()
-    k_dict = k_dict.update((key, value / trials) for key, value in k_dict.items())
-    est_dict = est_dict.update((key, value / trials) for key, value in est_dict.items())
-    best_k = max(k_dict, key=k_dict.get)
-    best_est = max(est_dict, key=est_dict.get)
+        print()
+
+    test_k_dict = {key: value / trials for key, value in k_dict.items()}
+    test_est_dict = {key: value / trials for key, value in est_dict.items()}
+    best_k = max(test_k_dict, key=test_k_dict.get)
+    best_est = max(test_est_dict, key=test_est_dict.get)
     return best_k, best_est
 
 
@@ -186,7 +188,7 @@ def main():
     # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
     trials = 25
     fine_neighbours, fine_estimators = hyperparams_tuning(tracks, features_all, feature_sets, trials)
-    print("Fine Nieghbours:", fine_neighbours, "Fine Estimators:0", fine_estimators)
+    print("Fine Nieghbours:", fine_neighbours, "Fine Estimators:", fine_estimators)
     scores, times = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
     with open("results_KNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
         outfile.write("Neighbours: " + str(fine_neighbours) + "\nEstimators: " + str(fine_estimators) + "\n")
