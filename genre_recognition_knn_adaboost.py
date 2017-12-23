@@ -156,12 +156,12 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
     for i in range(trials):
         print("Trial {} start time: {}".format(i + 1, strftime("%Y-%m-%d %H:%M:%S", gmtime())))
         it = 0
-        for j in range(0,110,10):
+        for j in range(0, 110, 10):
             it += 1
-            print("\r{}/11".format(it))
+            print("\r{}/11".format(it), end="")
             k = j
-            est = k/10
-            if(j == 0):
+            est = int(k/10)
+            if j == 0:
                 k = 1
                 est = 1
             scores = knn_and_adaboost(tracks, features_all, feature_sets, k, est, "validate")
