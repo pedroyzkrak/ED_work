@@ -1,6 +1,5 @@
 import time
 
-import numpy as np
 import pandas as pd
 from time import time as tm, gmtime, strftime
 from sklearn.utils import shuffle
@@ -8,6 +7,7 @@ from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, StandardSca
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import confusion_matrix,classification_report
+import matplotlib.pyplot as plt
 
 
 
@@ -104,14 +104,14 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
 
     def test_classifiers_features(classifiers, feature_sets, multi_label=False):
         genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
-        filename = "Confusion_Matrixes.txt"
-        matrixes_file = open(filename,"w")
+        filename = "Metrics.txt"
+        metrics_file = open(filename,"w")
         columns = list(classifiers.keys()).insert(0, 'dim')
         scores = pd.DataFrame(columns=columns, index=feature_sets.keys())
         times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
         start = tm()
         for fset_name, fset in feature_sets.items():
-            matrixes_file.write(fset_name+": \n")
+            metrics_file.write(fset_name+": \n")
             start_comb = tm()
             y_train, y_val, y_test, x_train, x_val, x_test = pre_process(tracks, features_all, fset, multi_label)
             print("Combination: {}".format(fset_name))
@@ -126,14 +126,16 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
                 times.loc[fset_name, clf_name] = time.process_time() - t
                 print("\tTime: {} s".format(tm() - start_classifier))
                 pred = clf.predict(x_test)
-                conf_matrix = pd.crosstab(y_test,pred, rownames=['True'], colnames=['Predicted'], margins=True)
-                matrixes_file.write("\n\n-----------MATRIX--------\n\n")
-                matrixes_file.write(clf_name+": \n")
-                conf_matrix.to_string(matrixes_file)
-                matrixes_file.write("\n\n-----------STATS--------\n\n")
-                matrixes_file.write(classification_report(y_test,pred, target_names=list(LabelEncoder().fit(tracks['track.7']).classes_)))
+                conf_matrix = confusion_matrix(y_test,pred)
+                metrics_file.write("\n\n-----------MATRIX--------\n\n")
+                metrics_file.write(clf_name+": \n")
+                metrics_file.write(str(conf_matrix))
+                plt.imshow(conf_matrix, cmap='binary', interpolation='None')
+                plt.savefig(fset_name.replace("/","And")+"_"+clf_name+"_confMatrix.png")
+                metrics_file.write("\n\n-----------STATS--------\n\n")
+                metrics_file.write(classification_report(y_test,pred, target_names=list(LabelEncoder().fit(tracks['track.7']).classes_)))
             print("Time for {}: {} s".format(fset_name, tm() - start_comb))
-            matrixes_file.flush()
+            metrics_file.flush()
         print("Test Classifiers Features Finish.")
         print("Total time: {}".format(tm() - start))
         return scores, times
