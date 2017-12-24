@@ -1,0 +1,23 @@
+Neighbours: 30
+Estimators: 1
+                                         dim       kNN  AdaBoost
+mfcc/contrast                          189.0  0.570540  0.413525
+mfcc/contrast/chroma                   273.0  0.562767  0.413525
+mfcc/contrast/centroid                 196.0  0.571318  0.413525
+mfcc/contrast/chroma/centroid          280.0  0.560047  0.413525
+mfcc/contrast/chroma/centroid/tonnetz  322.0  0.558492  0.413525
+mfcc/contrast/chroma/centroid/zcr      287.0  0.561213  0.413525
+
+
+
+
+
+
+
+                                           kNN  AdaBoost
+mfcc/contrast                          25.6094  0.671875
+mfcc/contrast/chroma                     34.75  0.984375
+mfcc/contrast/centroid                 26.7031  0.734375
+mfcc/contrast/chroma/centroid          35.6094  0.953125
+mfcc/contrast/chroma/centroid/tonnetz  39.9844     1.125
+mfcc/contrast/chroma/centroid/zcr      36.2969   1.03125

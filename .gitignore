@@ -5,3 +5,6 @@
 *.pickle
 README.txt
 checksums
+.idea/
+!Metrics.txt
+!results*.txt

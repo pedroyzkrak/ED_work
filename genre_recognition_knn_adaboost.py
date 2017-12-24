@@ -168,7 +168,7 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
     k_dict = {}
     est_dict = {}
     for i in range(trials):
-        print("Trial {} start time: {}".format(i + 1, strftime("%H:%M:%S %d-%m-%Y", gmtime())))
+        print("\nTrial {} start time: {}".format(i + 1, strftime("%H:%M:%S %d-%m-%Y", gmtime())))
         it = 0
         for j in range(0, 110, 10):
             it += 1
