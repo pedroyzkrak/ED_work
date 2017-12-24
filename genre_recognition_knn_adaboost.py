@@ -7,7 +7,7 @@ from sklearn.utils import shuffle
 from sklearn.preprocessing import MultiLabelBinarizer, LabelEncoder, StandardScaler
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.metrics import confusion_matrix
+from sklearn.metrics import confusion_matrix,classification_report
 
 
 
@@ -103,32 +103,40 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
         return scores
 
     def test_classifiers_features(classifiers, feature_sets, multi_label=False):
-        matrixes = {} #confusion matrixes
-        #genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
+        genres = list(LabelEncoder().fit(tracks['track.7']).classes_)
+        filename = "Confusion_Matrixes.txt"
+        matrixes_file = open(filename,"w")
         columns = list(classifiers.keys()).insert(0, 'dim')
         scores = pd.DataFrame(columns=columns, index=feature_sets.keys())
         times = pd.DataFrame(columns=classifiers.keys(), index=feature_sets.keys())
         start = tm()
         for fset_name, fset in feature_sets.items():
+            matrixes_file.write(fset_name+": \n")
             start_comb = tm()
             y_train, y_val, y_test, x_train, x_val, x_test = pre_process(tracks, features_all, fset, multi_label)
             print("Combination: {}".format(fset_name))
             scores.loc[fset_name, 'dim'] = x_train.shape[1]
             for clf_name, clf in classifiers.items():
                 start_classifier = tm()
-                print("\tClassifier: {}".format(clf_name))
+                print("\n\tClassifier: {}".format(clf_name))
                 t = time.process_time()
                 clf.fit(x_train, y_train)
                 score = clf.score(x_test, y_test)
                 scores.loc[fset_name, clf_name] = score
                 times.loc[fset_name, clf_name] = time.process_time() - t
                 print("\tTime: {} s".format(tm() - start_classifier))
-                conf_matrix = confusion_matrix(y_test,clf.predict(x_test))
-                matrixes[clf_name+"/"+fset_name] = conf_matrix
+                pred = clf.predict(x_test)
+                conf_matrix = pd.crosstab(y_test,pred, rownames=['True'], colnames=['Predicted'], margins=True)
+                matrixes_file.write("\n\n-----------MATRIX--------\n\n")
+                matrixes_file.write(clf_name+": \n")
+                conf_matrix.to_string(matrixes_file)
+                matrixes_file.write("\n\n-----------STATS--------\n\n")
+                matrixes_file.write(classification_report(y_test,pred, target_names=list(LabelEncoder().fit(tracks['track.7']).classes_)))
             print("Time for {}: {} s".format(fset_name, tm() - start_comb))
+            matrixes_file.flush()
         print("Test Classifiers Features Finish.")
         print("Total time: {}".format(tm() - start))
-        return scores, times, conf_matrixes
+        return scores, times
 
     train = tracks.index[tracks['set'] == 'training']
     val = tracks.index[tracks['set'] == 'validation']
@@ -149,8 +157,8 @@ def knn_and_adaboost(tracks, features_all, feature_sets, neighbours, estimators,
         scores = validate_classifiers_features(classifiers, feature_sets)
         return scores
 
-    scores, times, conf_matrixes = test_classifiers_features(classifiers, feature_sets)
-    return scores, times, conf_matrixes
+    scores, times = test_classifiers_features(classifiers, feature_sets)
+    return scores, times
 
 
 def hyperparams_tuning(tracks, features_all, feature_sets, trials):
@@ -190,18 +198,15 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
 def main():
     tracks, features_all, feature_sets = load_training_parameters()
     # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
-    trials = 25
+    trials = 20
     fine_neighbours, fine_estimators = hyperparams_tuning(tracks, features_all, feature_sets, trials)
     print("Fine Neighbours:", fine_neighbours, "Fine Estimators:", fine_estimators)
-    scores, times, confusion_matrixes = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
+    scores, times = knn_and_adaboost(tracks, features_all, feature_sets, fine_neighbours, fine_estimators)
     with open("results_kNN_and_ADABOOST_withTunedParams.txt", 'w') as outfile:
         outfile.write("Neighbours: " + str(fine_neighbours) + "\nEstimators: " + str(fine_estimators) + "\n")
         scores.to_string(outfile)
         outfile.write("\n\n\n\n\n\n\n\n")
         times.to_string(outfile)
-        outfile.write("\n\n\n\n\n\n\n\n")
-  #MUDAR ISTO      outfile.write("Confusion Matrixes\nkNN:\n"+str(confusion_matrixes["kNN"])+"\nAdaBoost:\n"+str(confusion_matrixes["AdaBoost"]))
-
 
 if __name__ == '__main__':
     main()
