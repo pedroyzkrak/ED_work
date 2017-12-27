@@ -199,7 +199,7 @@ def hyperparams_tuning(tracks, features_all, feature_sets, trials):
 
 def main():
     tracks, features_all, feature_sets = load_training_parameters()
-    # neighbours for the knn classifier TUNED AND number os estimators for the adaptive boost classifier TUNED
+    # neighbours for the knn classifier TUNED AND number of estimators for the adaptive boost classifier TUNED
     trials = 20
     fine_neighbours, fine_estimators = hyperparams_tuning(tracks, features_all, feature_sets, trials)
     print("Fine Neighbours:", fine_neighbours, "Fine Estimators:", fine_estimators)
